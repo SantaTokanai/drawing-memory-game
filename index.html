@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>記憶して描く</title>
+<style>
+  body { text-align: center; font-family: sans-serif; }
+  #sample, #drawCanvas, #output { border: 1px solid #000; margin: 10px auto; display: block; }
+  canvas { touch-action: none; }
+  button { margin: 5px; }
+</style>
+</head>
+<body>
+
+<h2>見本を覚えて描いてみよう</h2>
+
+<!-- 見本画像 -->
+<img id="sample" src="sample.png" width="300" height="300">
+
+<!-- 描画用キャンバス -->
+<canvas id="drawCanvas" width="300" height="300" style="display:none;"></canvas>
+
+<!-- 描画完了後の画像 -->
+<img id="output" alt="描いた絵" />
+
+<button id="showImg" style="display:none;">画像表示</button>
+<button id="clear" style="display:none;">消去</button>
+
+<script>
+const sample = document.getElementById('sample');
+const canvas = document.getElementById('drawCanvas');
+const ctx = canvas.getContext('2d');
+ctx.lineWidth = 3;
+ctx.lineCap = 'round';
+
+let drawing = false;
+
+// 見本を10秒表示したあとキャンバスに切り替え
+setTimeout(() => {
+  sample.style.display = 'none';
+  canvas.style.display = 'block';
+  document.getElementById('showImg').style.display = 'inline';
+  document.getElementById('clear').style.display = 'inline';
+}, 10000); // 10000ms = 10秒
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  if (e.touches) {
+    return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+  } else {
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+}
+
+// 描画イベント
+canvas.addEventListener('mousedown', e => { drawing = true; const pos = getPos(e); ctx.moveTo(pos.x, pos.y); });
+canvas.addEventListener('mousemove', e => { if(!drawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); });
+canvas.addEventListener('mouseup', e => { drawing = false; });
+canvas.addEventListener('mouseleave', e => { drawing = false; });
+
+canvas.addEventListener('touchstart', e => { drawing = true; const pos = getPos(e); ctx.moveTo(pos.x, pos.y); });
+canvas.addEventListener('touchmove', e => { if(!drawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); e.preventDefault(); });
+canvas.addEventListener('touchend', e => { drawing = false; });
+
+// 消去ボタン
+document.getElementById('clear').addEventListener('click', () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById('output').src = '';
+});
+
+// 画像表示ボタン
+document.getElementById('showImg').addEventListener('click', () => {
+  const dataURL = canvas.toDataURL('image/png');
+  document.getElementById('output').src = dataURL;
+});
+</script>
+
+</body>
+</html>
