@@ -6,9 +6,10 @@
 <title>記憶して描くお絵かき</title>
 <style>
   body { text-align: center; font-family: sans-serif; }
-  #sampleContainer, #canvasContainer { margin: 20px auto; }
+  #sampleContainer, #canvasContainer, #outputContainer { margin: 20px auto; }
   canvas, img { border: 1px solid #000; display: block; margin: 10px auto; max-width: 90%; }
   button { margin: 5px; padding: 5px 10px; font-size: 16px; }
+  #saveMessage { font-size: 14px; color: #555; }
 </style>
 </head>
 <body>
@@ -26,11 +27,14 @@
   <canvas id="drawCanvas" width="300" height="300"></canvas>
   <p>残り <span id="drawCountdown">60</span> 秒</p>
   <button id="showImg">描画完了</button>
-  <button id="clear">消去</button>
+  <button id="reset">リセット</button>
 </div>
 
 <!-- 描画後の画像 -->
-<img id="output" alt="描いた絵">
+<div id="outputContainer" style="display:none;">
+  <img id="output" alt="描いた絵">
+  <p id="saveMessage">長押しでカメラロールに保存できます</p>
+</div>
 
 <script>
 const sampleContainer = document.getElementById('sampleContainer');
@@ -55,12 +59,12 @@ function getPos(e) {
 }
 
 // 描画イベント
-canvas.addEventListener('mousedown', e => { drawing = true; const pos = getPos(e); ctx.moveTo(pos.x, pos.y); });
+canvas.addEventListener('mousedown', e => { drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); });
 canvas.addEventListener('mousemove', e => { if(!drawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); });
 canvas.addEventListener('mouseup', e => { drawing = false; });
 canvas.addEventListener('mouseleave', e => { drawing = false; });
 
-canvas.addEventListener('touchstart', e => { drawing = true; const pos = getPos(e); ctx.moveTo(pos.x, pos.y); });
+canvas.addEventListener('touchstart', e => { drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); });
 canvas.addEventListener('touchmove', e => { if(!drawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); e.preventDefault(); });
 canvas.addEventListener('touchend', e => { drawing = false; });
 
@@ -100,13 +104,15 @@ function showImage() {
   const dataURL = canvas.toDataURL('image/png');
   const output = document.getElementById('output');
   output.src = dataURL;
-  output.style.display = 'block';
+  document.getElementById('outputContainer').style.display = 'block';
 }
 
-// 消去ボタン
-document.getElementById('clear').addEventListener('click', () => {
+// リセットボタン
+document.getElementById('reset').addEventListener('click', () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.beginPath();
   document.getElementById('output').src = '';
+  document.getElementById('outputContainer').style.display = 'none';
 });
 
 </script>
